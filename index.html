@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lukintosh Mission Control</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navegação principal">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">LM</div>
+          <div>
+            <h1>Lukintosh Mission Control</h1>
+            <p>Observe, controle e confie nos seus agentes de IA.</p>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="dashboard" data-label="Dashboard">
+            <span class="nav-icon">◆</span>
+            Dashboard
+          </button>
+          <button class="nav-item" data-view="agents" data-label="Agentes">
+            <span class="nav-icon">◇</span>
+            Agentes
+          </button>
+          <button class="nav-item" data-view="tasks" data-label="Missões">
+            <span class="nav-icon">▣</span>
+            Missões
+          </button>
+          <button class="nav-item" data-view="logs" data-label="Logs">
+            <span class="nav-icon">▤</span>
+            Logs
+          </button>
+          <button class="nav-item" data-view="universe" data-label="Agent Universe">
+            <span class="nav-icon">✦</span>
+            Universe
+          </button>
+          <button class="nav-item" data-view="marketplace" data-label="Marketplace">
+            <span class="nav-icon">⬡</span>
+            Marketplace
+          </button>
+          <button class="nav-item" data-view="settings" data-label="Configurações">
+            <span class="nav-icon">⚙</span>
+            Configurações
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <span class="status-pulse"></span>
+          Sistema local ativo
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="section-label">MVP local</p>
+            <h2 id="view-title">Dashboard</h2>
+          </div>
+          <div class="topbar-actions">
+            <button class="ghost-button" id="seed-demo-button" type="button">Restaurar demo</button>
+            <button class="danger-button" id="clear-data-button" type="button">Limpar dados</button>
+          </div>
+        </header>
+
+        <section id="dashboard" class="view active-view" aria-labelledby="dashboard-title">
+          <div class="metric-grid" id="metric-grid"></div>
+
+          <div class="dashboard-layout">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Operações</p>
+                  <h3 id="dashboard-title">Missões recentes</h3>
+                </div>
+                <button class="primary-button" data-switch-view="tasks" type="button">Nova missão</button>
+              </div>
+              <div id="recent-tasks" class="task-stack"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Controle humano</p>
+                  <h3>Aprovações pendentes</h3>
+                </div>
+              </div>
+              <div id="pending-approvals" class="approval-stack"></div>
+            </section>
+          </div>
+
+          <div class="dashboard-layout observability-layout">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Observabilidade viva</p>
+                  <h3>Atividade, custos e latência</h3>
+                </div>
+              </div>
+              <div id="activity-board" class="activity-board"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Heatmap</p>
+                  <h3>Pontos quentes</h3>
+                </div>
+              </div>
+              <div id="heatmap-board" class="heatmap-board"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="agents" class="view" aria-labelledby="agents-title">
+          <div class="split-layout">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Cadastro</p>
+                  <h3 id="agents-title">Criar agente</h3>
+                </div>
+              </div>
+              <form id="agent-form" class="form-grid">
+                <label>
+                  Nome
+                  <input name="name" type="text" placeholder="Ex: Atlas Research" required />
+                </label>
+                <label>
+                  Função
+                  <input name="role" type="text" placeholder="Ex: Analista de mercado" required />
+                </label>
+                <label>
+                  Modelo usado
+                  <select name="model" required>
+                    <option value="gpt-5">gpt-5</option>
+                    <option value="gpt-5-mini">gpt-5-mini</option>
+                    <option value="gpt-4.1">gpt-4.1</option>
+                    <option value="local-sim">local-sim</option>
+                  </select>
+                </label>
+                <fieldset>
+                  <legend>Ferramentas permitidas</legend>
+                  <label class="check-row">
+                    <input type="checkbox" name="tools" value="pesquisar_web" checked />
+                    pesquisar_web
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox" name="tools" value="ler_arquivo" checked />
+                    ler_arquivo
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox" name="tools" value="enviar_email" />
+                    enviar_email
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox" name="tools" value="excluir_arquivo" />
+                    excluir_arquivo
+                  </label>
+                  <label class="check-row">
+                    <input type="checkbox" name="tools" value="gastar_dinheiro" />
+                    gastar_dinheiro
+                  </label>
+                </fieldset>
+                <button class="primary-button" type="submit">Criar agente</button>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Frota</p>
+                  <h3>Agentes ativos</h3>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Agente</th>
+                      <th>Função</th>
+                      <th>Modelo</th>
+                      <th>Status</th>
+                      <th>Ferramentas</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="agents-table"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="inspector" class="view" aria-labelledby="inspector-title">
+          <div id="agent-inspector"></div>
+        </section>
+
+        <section id="tasks" class="view" aria-labelledby="tasks-title">
+          <div class="split-layout tasks-layout">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Execução supervisionada</p>
+                  <h3 id="tasks-title">Criar missão</h3>
+                </div>
+              </div>
+              <form id="task-form" class="form-grid">
+                <label>
+                  Agente
+                  <select name="agentId" id="task-agent-select" required></select>
+                </label>
+                <label>
+                  Nome da missão
+                  <input name="title" type="text" placeholder="Ex: Preparar relatório financeiro" required />
+                </label>
+                <label>
+                  Objetivo
+                  <input name="objective" type="text" placeholder="Ex: Entregar um plano seguro, auditável e barato" />
+                </label>
+                <label>
+                  Prioridade
+                  <select name="priority" required>
+                    <option value="normal">Normal</option>
+                    <option value="alta">Alta</option>
+                    <option value="crítica">Crítica</option>
+                  </select>
+                </label>
+                <label>
+                  Perfil da simulação
+                  <select name="scenario" required>
+                    <option value="safe">Seguro</option>
+                    <option value="email">Inclui enviar_email</option>
+                    <option value="file">Inclui excluir_arquivo</option>
+                    <option value="money">Inclui gastar_dinheiro</option>
+                    <option value="mixed">Misto com aprovação</option>
+                  </select>
+                </label>
+                <button class="primary-button" type="submit">Simular e iniciar</button>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Linha do tempo inteligente</p>
+                  <h3>Missões</h3>
+                </div>
+              </div>
+              <div id="tasks-list" class="task-stack"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="logs" class="view" aria-labelledby="logs-title">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="section-label">Auditoria</p>
+                <h3 id="logs-title">Registro completo de ações</h3>
+              </div>
+              <button class="ghost-button" id="export-logs-button" type="button">Exportar JSON</button>
+            </div>
+            <div class="log-filters">
+              <input id="log-filter-agent" type="search" placeholder="Filtrar agente" />
+              <input id="log-filter-task" type="search" placeholder="Filtrar missão" />
+              <input id="log-filter-tool" type="search" placeholder="Filtrar ferramenta/ação" />
+              <select id="log-filter-status">
+                <option value="">Todos os status</option>
+                <option value="completed">Concluído</option>
+                <option value="running">Executando</option>
+                <option value="pending">Aguardando</option>
+                <option value="failed">Falhou</option>
+                <option value="denied">Negado</option>
+                <option value="approved">Aprovado</option>
+              </select>
+            </div>
+            <div class="table-wrap log-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data e hora</th>
+                    <th>Agente</th>
+                    <th>Missão</th>
+                    <th>Ação</th>
+                    <th>Status</th>
+                    <th>Mensagem</th>
+                  </tr>
+                </thead>
+                <tbody id="logs-table"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section id="universe" class="view" aria-labelledby="universe-title">
+          <section class="panel universe-panel">
+            <div class="panel-header">
+              <div>
+                <p class="section-label">Agent Universe</p>
+                <h3 id="universe-title">Ecossistema vivo de agentes</h3>
+              </div>
+              <button class="ghost-button" id="pulse-universe-button" type="button">Pulso</button>
+            </div>
+            <div id="agent-universe" class="agent-universe"></div>
+          </section>
+        </section>
+
+        <section id="marketplace" class="view" aria-labelledby="marketplace-title">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="section-label">Marketplace</p>
+                <h3 id="marketplace-title">Agentes instaláveis</h3>
+              </div>
+            </div>
+            <div id="marketplace-grid" class="marketplace-grid"></div>
+          </section>
+        </section>
+
+        <section id="settings" class="view" aria-labelledby="settings-title">
+          <section class="panel settings-panel">
+            <div class="panel-header">
+              <div>
+                <p class="section-label">Parâmetros locais</p>
+                <h3 id="settings-title">Configurações</h3>
+              </div>
+            </div>
+            <form id="settings-form" class="form-grid">
+              <label>
+                Custo estimado por etapa
+                <input name="costPerStep" type="number" min="0" step="0.001" />
+              </label>
+              <label>
+                Intervalo da simulação em ms
+                <input name="stepDelay" type="number" min="400" step="100" />
+              </label>
+              <label class="check-row">
+                <input type="checkbox" name="autoScrollLogs" />
+                Manter logs recentes no topo
+              </label>
+              <button class="primary-button" type="submit">Salvar configurações</button>
+            </form>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <dialog id="investigation-dialog" class="modal">
+      <div class="modal-header">
+        <div>
+          <p class="section-label">Observabilidade</p>
+          <h3 id="investigation-title">Investigação</h3>
+        </div>
+        <button class="ghost-button" id="close-investigation-button" type="button">Fechar</button>
+      </div>
+      <div id="investigation-content" class="investigation-content"></div>
+    </dialog>
+    <script src="app.js"></script>
+  </body>
+</html>

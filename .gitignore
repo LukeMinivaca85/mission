@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+node_modules/
+work/
+.DS_Store
+.wrangler/
+.next/
+dist/
+coverage/

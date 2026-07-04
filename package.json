@@ -1,0 +1,22 @@
+{
+  "name": "lukintosh-mission-control",
+  "version": "0.2.0",
+  "description": "MVP local para monitorar e controlar agentes de IA via OpenRouter.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "lukintosh",
+    "agents",
+    "openrouter",
+    "mission-control"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}

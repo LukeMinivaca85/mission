@@ -1,0 +1,7 @@
+name = "mission"
+pages_build_output_dir = "."
+compatibility_date = "2026-07-04"
+
+[vars]
+OPENROUTER_MODEL = "openrouter/free"
+OPENROUTER_FALLBACK_MODELS = "openrouter/free"
