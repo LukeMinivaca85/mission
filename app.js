@@ -1,4 +1,5 @@
 const STORAGE_KEY = "lukintoshMissionControlState";
+const API_BASE_URL = "https://mission-qnfa.onrender.com";
 const RISKY_ACTIONS = new Set(["enviar_email", "excluir_arquivo", "gastar_dinheiro"]);
 const SENSITIVE_ACTIONS = new Set([
   "enviar_email",
@@ -398,7 +399,7 @@ async function handleTaskSubmit(event) {
 }
 
 async function requestAgentRun(agent, taskTitle) {
-  const response = await fetch("/api/agent-run", {
+  const response = await fetch(`${API_BASE_URL}/api/agent-run`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -1800,7 +1801,7 @@ function handleSettingsSubmit(event) {
 
 async function loadOpenRouterModels() {
   try {
-    const response = await fetch("/api/models");
+    const response = await fetch(`${API_BASE_URL}/api/models`);
     const payload = await response.json();
     state.openRouter.configuredModel = payload.configured_model || "openrouter/free";
     state.openRouter.models = Array.isArray(payload.models)
