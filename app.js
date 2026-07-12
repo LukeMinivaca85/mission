@@ -1,10 +1,7 @@
 const STORAGE_KEY = "lukintoshMissionControlState";
-<<<<<<< HEAD
 const API_BASE_URL = "https://mission-qnfa.onrender.com";
-=======
 const DAY_913_STORAGE_KEY = "lukintoshDay913Feedback";
 const FOUNDER_MODE_KEY = "lukintoshFounderMode";
->>>>>>> 1bd19ef (Add Enterprise layer to Mission Control)
 const RISKY_ACTIONS = new Set(["enviar_email", "excluir_arquivo", "gastar_dinheiro"]);
 const SENSITIVE_ACTIONS = new Set([
   "enviar_email",
@@ -3769,7 +3766,12 @@ async function openCheckout(planId) {
     `;
     elements.checkoutDialog.showModal();
     elements.checkoutContent.querySelector("[data-enterprise-contact]")?.addEventListener("click", () => {
-      window.location.href = "mailto:hello@lukintosh.com?subject=Lukintosh%20Mission%20Control%20Enterprise";
+      elements.checkoutDialog.close();
+      switchView("pricing");
+      const salesPanel = document.querySelector("#enterprise-sales-panel");
+      salesPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+      salesPanel?.querySelector("input[name='name']")?.focus({ preventScroll: true });
+      showToast("Preencha o formulário Enterprise para falar com vendas.");
     });
     elements.checkoutContent.querySelector("[data-enterprise-demo]")?.addEventListener("click", () => {
       elements.checkoutDialog.close();
