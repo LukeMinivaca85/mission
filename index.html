@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lukintosh Mission Control</title>
-    <link rel="icon" href="data:," />
+    <title>Lukintosh Mission | Build, Run & Control AI Agents</title>
+    <link rel="icon" type="image/png" href="assets/lukintosh-favicon.png" />
+    <link rel="apple-touch-icon" href="assets/lukintosh-favicon.png" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -43,6 +44,18 @@
             <span class="nav-icon">⬡</span>
             Marketplace
           </button>
+          <button class="nav-item" data-view="pricing" data-label="Planos">
+            <span class="nav-icon">◈</span>
+            Planos
+          </button>
+          <button class="nav-item" data-view="teams" data-label="Teams">
+            <span class="nav-icon">◫</span>
+            Teams
+          </button>
+          <button class="nav-item" data-view="governance" data-label="Governança">
+            <span class="nav-icon">▧</span>
+            Governança
+          </button>
           <button class="nav-item" data-view="settings" data-label="Configurações">
             <span class="nav-icon">⚙</span>
             Configurações
@@ -51,24 +64,95 @@
 
         <div class="sidebar-footer">
           <span class="status-pulse"></span>
-          Sistema local ativo
+          <div>
+            <strong id="system-status-title">Serviços em verificação</strong>
+            <small id="system-status-detail">Validando Mission Cloud</small>
+          </div>
         </div>
       </aside>
 
       <main class="main-content">
         <header class="topbar">
           <div>
-            <p class="section-label">MVP local</p>
+            <p class="section-label">Sistema operacional</p>
             <h2 id="view-title">Dashboard</h2>
+            <p class="view-subtitle" id="view-subtitle">Execute, acompanhe e governe agentes de IA em um único centro de comando.</p>
           </div>
           <div class="topbar-actions">
-            <button class="ghost-button" id="seed-demo-button" type="button">Restaurar demo</button>
+            <button class="ghost-button" id="seed-demo-button" type="button">Preparar experiência guiada</button>
             <button class="danger-button" id="clear-data-button" type="button">Limpar dados</button>
           </div>
         </header>
 
         <section id="dashboard" class="view active-view" aria-labelledby="dashboard-title">
+          <section class="panel onboarding-panel" id="mission-primer">
+            <div class="onboarding-copy">
+              <p class="section-label">Comece aqui</p>
+              <h3>Entenda seus agentes em menos de 2 minutos.</h3>
+              <p>Crie um agente, escolha um template, execute uma missão e veja Resultado Final, Replay, Inspector e Universe sem sair do fluxo.</p>
+            </div>
+            <div class="onboarding-steps">
+              <button class="onboarding-step" data-switch-view="agents" type="button">
+                <span>1</span>
+                <strong>Criar agente</strong>
+                <em>Defina função, modelo e ferramentas.</em>
+              </button>
+              <button class="onboarding-step" data-switch-view="tasks" type="button">
+                <span>2</span>
+                <strong>Rodar missão</strong>
+                <em>Use um template profissional.</em>
+              </button>
+              <button class="onboarding-step" data-switch-view="universe" type="button">
+                <span>3</span>
+                <strong>Observar sistema</strong>
+                <em>Veja agentes, conexões e mensagens.</em>
+              </button>
+            </div>
+          </section>
+
+          <section class="command-pillars" aria-label="Pilares do Mission Control">
+            <article>
+              <span>Execução</span>
+              <strong>Agentes, missões, templates e aprovações humanas</strong>
+            </article>
+            <article>
+              <span>Observabilidade</span>
+              <strong>Logs, custos, latência, Inspector, Replay e investigação</strong>
+            </article>
+            <article>
+              <span>Governança</span>
+              <strong>Teams, políticas, auditoria e exportação de resultados</strong>
+            </article>
+          </section>
+
+          <section class="panel day913-panel" id="day-913-panel">
+            <div class="day913-hero">
+              <p class="section-label">Dia 913</p>
+              <h3>Conseguir 1 teste externo hoje.</h3>
+              <p>Foco: mostrar o Mission Control em 2 minutos, registrar feedback real e transformar o teste em próximo passo.</p>
+              <div class="day913-actions">
+                <button class="primary-button" id="day-913-demo-button" type="button">Preparar demo de 2 min</button>
+                <button class="ghost-button" id="day-913-copy-button" type="button">Copiar convite</button>
+              </div>
+            </div>
+            <div class="day913-workflow">
+              <div class="day913-checklist" id="day-913-checklist"></div>
+              <form class="day913-feedback" id="day-913-feedback-form">
+                <label>
+                  Feedback do tester
+                  <textarea name="feedback" rows="3" placeholder="O que ficou claro, confuso ou útil?" required></textarea>
+                </label>
+                <div class="day913-feedback-row">
+                  <input name="tester" type="text" placeholder="Nome ou @ da pessoa" />
+                  <button class="primary-button" type="submit">Registrar</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
           <div class="metric-grid" id="metric-grid"></div>
+
+          <section class="panel billing-panel" id="billing-panel"></section>
 
           <div class="dashboard-layout">
             <section class="panel">
@@ -242,6 +326,15 @@
                 </label>
                 <button class="primary-button" type="submit">Simular e iniciar</button>
               </form>
+              <div class="template-library">
+                <div class="panel-header compact-header">
+                  <div>
+                    <p class="section-label">Templates</p>
+                    <h3>Biblioteca de missões</h3>
+                  </div>
+                </div>
+                <div id="template-grid" class="template-grid"></div>
+              </div>
             </section>
 
             <section class="panel">
@@ -304,7 +397,13 @@
                 <p class="section-label">Agent Universe</p>
                 <h3 id="universe-title">Ecossistema vivo de agentes</h3>
               </div>
-              <button class="ghost-button" id="pulse-universe-button" type="button">Pulso</button>
+              <div class="universe-actions">
+                <label>
+                  Zoom
+                  <input id="universe-zoom" type="range" min="80" max="140" value="100" />
+                </label>
+                <button class="ghost-button" id="pulse-universe-button" type="button">Pulso</button>
+              </div>
             </div>
             <div id="agent-universe" class="agent-universe"></div>
           </section>
@@ -322,28 +421,415 @@
           </section>
         </section>
 
+        <section id="pricing" class="view" aria-labelledby="pricing-title">
+          <section class="panel pricing-panel">
+            <div class="panel-header">
+              <div>
+                <p class="section-label">Planos</p>
+                <h3 id="pricing-title">Escolha como controlar seus agentes</h3>
+              </div>
+            </div>
+            <div id="pricing-grid" class="pricing-grid"></div>
+            <section class="sales-panel">
+              <div>
+                <p class="section-label">Enterprise</p>
+                <h3>Fale com vendas</h3>
+                <p>Para equipes reguladas, múltiplos workspaces, RBAC, SSO/SCIM em piloto, auditoria e integrações corporativas.</p>
+              </div>
+              <form id="sales-lead-form" class="sales-form">
+                <input name="name" type="text" placeholder="Nome" required />
+                <input name="email" type="email" placeholder="E-mail corporativo" required />
+                <input name="company" type="text" placeholder="Empresa" required />
+                <input name="role" type="text" placeholder="Cargo" />
+                <select name="teamSize" required>
+                  <option value="">Tamanho da equipe</option>
+                  <option value="1-10">1-10</option>
+                  <option value="11-50">11-50</option>
+                  <option value="51-250">51-250</option>
+                  <option value="251-1000">251-1000</option>
+                  <option value="1000+">1000+</option>
+                </select>
+                <textarea name="useCase" placeholder="Caso de uso: atendimento, engenharia, operações, jurídico..." required></textarea>
+                <textarea name="message" placeholder="Mensagem opcional"></textarea>
+                <label class="check-row">
+                  <input type="checkbox" name="consent" required />
+                  Aceito ser contatado sobre o Lukintosh Mission Enterprise.
+                </label>
+                <button class="primary-button" type="submit">Enviar interesse Enterprise</button>
+              </form>
+            </section>
+            <div class="plan-comparison">
+              <div class="panel-header compact-header">
+                <div>
+                  <p class="section-label">Comparativo</p>
+                  <h3>Recursos por plano</h3>
+                </div>
+              </div>
+              <div id="plan-comparison-table" class="plan-comparison-table"></div>
+            </div>
+          </section>
+        </section>
+
+        <section id="teams" class="view" aria-labelledby="teams-title">
+          <div class="teams-layout">
+            <section class="panel teams-hero-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Business</p>
+                  <h3 id="teams-title">Workspaces e membros</h3>
+                </div>
+                <button class="primary-button" id="team-business-button" type="button">Ativar Business</button>
+              </div>
+              <div id="team-summary" class="team-summary"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Workspace</p>
+                  <h3>Criar workspace</h3>
+                </div>
+              </div>
+              <form id="workspace-form" class="form-grid compact-form">
+                <label>
+                  Nome do workspace
+                  <input name="name" type="text" placeholder="Ex: Lukintosh Core Team" required />
+                </label>
+                <label>
+                  Objetivo
+                  <input name="purpose" type="text" placeholder="Ex: Testar agentes com auditoria" />
+                </label>
+                <button class="primary-button" type="submit">Criar workspace</button>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Convites</p>
+                  <h3>Adicionar membro</h3>
+                </div>
+              </div>
+              <form id="team-member-form" class="form-grid compact-form">
+                <label>
+                  Nome
+                  <input name="name" type="text" placeholder="Ex: Ana Founder" required />
+                </label>
+                <label>
+                  Email
+                  <input name="email" type="email" placeholder="ana@empresa.com" required />
+                </label>
+                <label>
+                  Papel
+                  <select name="role" required>
+                    <option value="owner">Owner</option>
+                    <option value="admin">Admin</option>
+                    <option value="operator">Operator</option>
+                    <option value="analyst">Analyst</option>
+                    <option value="viewer">Viewer</option>
+                  </select>
+                </label>
+                <button class="primary-button" type="submit">Gerar convite</button>
+              </form>
+            </section>
+
+            <section class="panel teams-members-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Acesso</p>
+                  <h3>Membros e permissões</h3>
+                </div>
+              </div>
+              <div id="team-members" class="team-members"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="governance" class="view" aria-labelledby="governance-title">
+          <div class="governance-layout">
+            <section class="panel governance-hero-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Business + Enterprise</p>
+                  <h3 id="governance-title">Governança, compliance e controle</h3>
+                </div>
+                <div class="governance-actions">
+                  <button class="primary-button" id="governance-business-button" type="button">Business</button>
+                  <button class="ghost-button" id="governance-enterprise-button" type="button">Enterprise</button>
+                </div>
+              </div>
+              <div id="governance-summary" class="governance-summary"></div>
+            </section>
+
+            <section class="panel enterprise-runtime-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Enterprise OS</p>
+                  <h3>Organização, RBAC e segurança</h3>
+                </div>
+                <button class="ghost-button" id="refresh-enterprise-button" type="button">Atualizar</button>
+              </div>
+              <div id="enterprise-runtime" class="enterprise-runtime"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Business</p>
+                  <h3>Políticas operacionais</h3>
+                </div>
+              </div>
+              <form id="business-governance-form" class="form-grid compact-form">
+                <label>
+                  Limite mensal da equipe em USD
+                  <input name="monthlyBudget" type="number" min="0" step="1" />
+                </label>
+                <label>
+                  Retenção de auditoria em dias
+                  <input name="auditRetentionDays" type="number" min="7" step="1" />
+                </label>
+                <label>
+                  Política de aprovação
+                  <select name="approvalPolicy">
+                    <option value="strict">Estrita: toda ação sensível</option>
+                    <option value="risk-based">Baseada em risco</option>
+                    <option value="admin-only">Somente admin/owner aprova</option>
+                  </select>
+                </label>
+                <label>
+                  Canal de incidentes
+                  <input name="incidentChannel" type="text" placeholder="Ex: #agent-incidents" />
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" name="requireReview" />
+                  Exigir revisão para missões críticas
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" name="teamConnectors" />
+                  Liberar conectores em nível de equipe
+                </label>
+                <button class="primary-button" type="submit">Salvar governança Business</button>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Enterprise</p>
+                  <h3>SSO, BYOK e deployment privado</h3>
+                </div>
+              </div>
+              <form id="enterprise-controls-form" class="form-grid compact-form">
+                <label>
+                  Provedor SSO
+                  <select name="ssoProvider">
+                    <option value="off">Desativado</option>
+                    <option value="google">Google Workspace</option>
+                    <option value="okta">Okta</option>
+                    <option value="azure-ad">Azure AD</option>
+                    <option value="saml">SAML/OIDC custom</option>
+                  </select>
+                </label>
+                <label>
+                  Domínio permitido
+                  <input name="allowedDomain" type="text" placeholder="empresa.com" />
+                </label>
+                <label>
+                  BYOK alias
+                  <input name="byokAlias" type="text" placeholder="kms/lukintosh-prod" />
+                </label>
+                <label>
+                  Região de dados
+                  <select name="dataRegion">
+                    <option value="global">Global</option>
+                    <option value="us">Estados Unidos</option>
+                    <option value="eu">Europa</option>
+                    <option value="br">Brasil</option>
+                  </select>
+                </label>
+                <label>
+                  Deployment privado
+                  <select name="privateDeployment">
+                    <option value="cloudflare">Cloudflare Pages/Workers</option>
+                    <option value="vpc">VPC privada</option>
+                    <option value="on-prem">On-premise</option>
+                  </select>
+                </label>
+                <label>
+                  Suporte contratado
+                  <select name="slaTier">
+                    <option value="standard">Standard</option>
+                    <option value="priority">Prioritário sob contrato</option>
+                    <option value="mission-critical">Missão crítica sob contrato</option>
+                  </select>
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" name="enforceSso" />
+                  Exigir SSO para todos os membros
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" name="complianceMode" />
+                  Ativar pacote compliance
+                </label>
+                <button class="primary-button" type="submit">Salvar controles Enterprise</button>
+              </form>
+            </section>
+
+            <section class="panel governance-audit-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Auditoria</p>
+                  <h3>Prontidão Business/Enterprise</h3>
+                </div>
+                <button class="ghost-button" id="export-governance-button" type="button">Exportar auditoria</button>
+              </div>
+              <div id="governance-readiness" class="governance-readiness"></div>
+            </section>
+          </div>
+        </section>
+
         <section id="settings" class="view" aria-labelledby="settings-title">
           <section class="panel settings-panel">
             <div class="panel-header">
               <div>
-                <p class="section-label">Parâmetros locais</p>
+                <p class="section-label">Centro de controle</p>
                 <h3 id="settings-title">Configurações</h3>
               </div>
             </div>
-            <form id="settings-form" class="form-grid">
-              <label>
-                Custo estimado por etapa
-                <input name="costPerStep" type="number" min="0" step="0.001" />
-              </label>
-              <label>
-                Intervalo da simulação em ms
-                <input name="stepDelay" type="number" min="400" step="100" />
-              </label>
-              <label class="check-row">
-                <input type="checkbox" name="autoScrollLogs" />
-                Manter logs recentes no topo
-              </label>
-              <button class="primary-button" type="submit">Salvar configurações</button>
+            <form id="settings-form" class="settings-form">
+              <div class="settings-workbench">
+                <aside class="settings-rail" aria-label="Seções de configuração">
+                  <button class="settings-tab active" data-settings-tab="connectors" type="button">
+                    <span>Conectores</span>
+                    <small>Status, tokens e testes</small>
+                  </button>
+                  <button class="settings-tab" data-settings-tab="ai" type="button">
+                    <span>IA e custos</span>
+                    <small>Modelos e limites</small>
+                  </button>
+                  <button class="settings-tab" data-settings-tab="billing" type="button">
+                    <span>Billing</span>
+                    <small>Plano e uso mensal</small>
+                  </button>
+                  <button class="settings-tab" data-settings-tab="guardrails" type="button">
+                    <span>Segurança</span>
+                    <small>Aprovação e memória</small>
+                  </button>
+                  <button class="settings-tab" data-settings-tab="operations" type="button">
+                    <span>Operação</span>
+                    <small>Logs e webhooks</small>
+                  </button>
+                </aside>
+
+                <div class="settings-content">
+                  <section class="settings-pane active" data-settings-panel="connectors">
+                    <div class="settings-pane-header">
+                      <div>
+                        <p class="section-label">Integrações</p>
+                        <h4>Conectores reais</h4>
+                      </div>
+                      <span class="settings-hint">Segredos ficam somente no servidor</span>
+                    </div>
+                    <div id="connector-grid" class="connector-grid"></div>
+                  </section>
+
+                  <section class="settings-pane" data-settings-panel="ai">
+                    <div class="settings-pane-header">
+                      <div>
+                        <p class="section-label">Provedores</p>
+                        <h4>IA e custos</h4>
+                      </div>
+                    </div>
+                    <div class="settings-field-grid">
+                      <label>
+                        Provedor principal
+                        <select name="primaryProvider">
+                          <option value="openrouter">OpenRouter</option>
+                          <option value="openai">OpenAI</option>
+                          <option value="anthropic">Anthropic</option>
+                          <option value="gemini">Gemini</option>
+                        </select>
+                      </label>
+                      <label>
+                        Modelos favoritos
+                        <input name="favoriteModels" type="text" placeholder="openrouter/free, gpt-5-mini" />
+                      </label>
+                      <label>
+                        Custo estimado por etapa
+                        <input name="costPerStep" type="number" min="0" step="0.001" />
+                      </label>
+                      <label>
+                        Limite diário em USD
+                        <input name="dailyCostLimit" type="number" min="0" step="0.01" />
+                      </label>
+                    </div>
+                  </section>
+
+                  <section class="settings-pane" data-settings-panel="billing">
+                    <div class="settings-pane-header">
+                      <div>
+                        <p class="section-label">Assinatura</p>
+                        <h4>Plano e uso</h4>
+                      </div>
+                      <span class="settings-hint">Checkout real será conectado ao Stripe depois</span>
+                    </div>
+                    <div id="settings-billing-summary" class="settings-billing-summary"></div>
+                  </section>
+
+                  <section class="settings-pane" data-settings-panel="guardrails">
+                    <div class="settings-pane-header">
+                      <div>
+                        <p class="section-label">Controle humano</p>
+                        <h4>Segurança e memória</h4>
+                      </div>
+                    </div>
+                    <div class="settings-field-grid">
+                      <label class="check-row">
+                        <input type="checkbox" name="autoApproval" />
+                        Permitir aprovação automática para risco baixo
+                      </label>
+                      <label class="check-row">
+                        <input type="checkbox" name="strictMode" />
+                        Bloquear ações sensíveis por padrão
+                      </label>
+                      <label class="check-row">
+                        <input type="checkbox" name="persistentMemory" />
+                        Ativar memória permanente local
+                      </label>
+                      <label>
+                        Retenção em dias
+                        <input name="memoryRetentionDays" type="number" min="1" step="1" />
+                      </label>
+                    </div>
+                  </section>
+
+                  <section class="settings-pane" data-settings-panel="operations">
+                    <div class="settings-pane-header">
+                      <div>
+                        <p class="section-label">Operação</p>
+                        <h4>Logs e notificações</h4>
+                      </div>
+                    </div>
+                    <div class="settings-field-grid">
+                      <label>
+                        Intervalo da simulação em ms
+                        <input name="stepDelay" type="number" min="400" step="100" />
+                      </label>
+                      <label class="check-row">
+                        <input type="checkbox" name="autoScrollLogs" />
+                        Manter logs recentes no topo
+                      </label>
+                      <label class="settings-wide-field">
+                        Webhook de notificação
+                        <input name="webhookUrl" type="url" placeholder="https://..." />
+                      </label>
+                    </div>
+                  </section>
+                </div>
+              </div>
+              <div class="settings-actions">
+                <button class="primary-button" type="submit">Salvar configurações</button>
+              </div>
             </form>
           </section>
         </section>
@@ -351,6 +837,28 @@
     </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <dialog id="upgrade-dialog" class="modal paywall-modal">
+      <div class="modal-header">
+        <div>
+          <p class="section-label">Upgrade</p>
+          <h3>Desbloqueie o poder completo do Mission Control</h3>
+        </div>
+        <button class="ghost-button" data-close-upgrade type="button">Fechar</button>
+      </div>
+      <div id="upgrade-content" class="paywall-content"></div>
+    </dialog>
+
+    <dialog id="checkout-dialog" class="modal checkout-modal">
+      <div class="modal-header">
+        <div>
+          <p class="section-label">Checkout mock</p>
+          <h3>Assinatura simulada</h3>
+        </div>
+        <button class="ghost-button" data-close-checkout type="button">Fechar</button>
+      </div>
+      <div id="checkout-content" class="checkout-content"></div>
+    </dialog>
+
     <dialog id="investigation-dialog" class="modal">
       <div class="modal-header">
         <div>
@@ -361,6 +869,7 @@
       </div>
       <div id="investigation-content" class="investigation-content"></div>
     </dialog>
+    <script src="billing.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

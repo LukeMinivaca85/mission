@@ -1,10 +1,12 @@
 {
   "name": "lukintosh-mission-control",
   "version": "0.2.0",
-  "description": "MVP local para monitorar e controlar agentes de IA via OpenRouter.",
+  "description": "Sistema operacional para monitorar, controlar e governar agentes de IA via OpenRouter.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "deploy": "node scripts/deploy-cloudflare.mjs",
+    "cloudflare:secrets": "node scripts/sync-cloudflare-secrets.mjs"
   },
   "keywords": [
     "lukintosh",
@@ -17,6 +19,7 @@
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "stripe": "^22.3.0"
   }
 }
