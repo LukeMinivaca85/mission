@@ -624,7 +624,7 @@ document.querySelectorAll("#log-filter-agent, #log-filter-task, #log-filter-tool
 
 handleCheckoutReturn();
 render();
-if (window.location.pathname === "/early-access") {
+if (["/early-access", "/early-access/"].includes(window.location.pathname)) {
   switchView("early-access");
 }
 loadOpenRouterModels();
