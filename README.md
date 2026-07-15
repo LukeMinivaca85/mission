@@ -210,6 +210,43 @@ Em Cloudflare Pages Functions, `/api/enterprise/context` e `/api/enterprise/sale
 
 SSO e SCIM estão marcados como **Disponível em piloto**. A interface, políticas e endpoints-base estão preparados, mas a ativação real depende de provedor externo, domínio verificado, armazenamento seguro de configuração e testes de autenticação.
 
+## Early Access
+
+O Early Access é a campanha principal de aquisição do Mission. Ele é aberto, imediato e não exige login, candidatura, aprovação manual, cartão ou conta.
+
+Mensagem principal:
+
+> Mission Early Access is live. Run AI agents. See what they’re doing. Stay in control. Start now — no account or credit card required.
+
+Funciona hoje:
+
+- Página `/early-access` com CTAs `Start Free`, `Get Pro`, `Get Business` e `See Mission in Action`.
+- `Start Free` gera um identificador anônimo local, ativa `Free Early Access` e prepara a primeira missão.
+- O plano gratuito do piloto não cobra automaticamente ao fim do piloto e preserva os dados locais.
+- O usuário pode fazer upgrade para Pro ou Business usando o Stripe Checkout já existente.
+- Pagamentos continuam validados pelo backend e pelo Stripe; privilégios pagos não dependem apenas de `localStorage`.
+- O Early Access local não libera privilégios Business/Enterprise sensíveis.
+- Eventos de funil são registrados sem dados pessoais desnecessários.
+
+Endpoints:
+
+```http
+POST /api/early-access/start
+POST /api/funnel/events
+GET /api/funnel/summary
+```
+
+Limites do Free Early Access:
+
+- 3 agentes.
+- 10 missões por mês.
+- Inspector completo durante o piloto.
+- Replay completo durante o piloto.
+- Templates premium selecionados.
+- Badge `Early Access Member`.
+
+Cloudflare Pages Functions também expõe essas rotas em modo runtime. Para persistência durável de analytics, conecte D1/KV/Postgres ou mantenha o backend Express como origem das APIs.
+
 Para sincronizar os secrets com o Cloudflare Pages depois de preencher o `.env` local:
 
 ```bash
@@ -286,6 +323,7 @@ Nesta fase, os conectores validam credenciais, status real e prévias de leitura
 ## Planos e recursos
 
 - Free: 3 agentes, 10 missões por mês, 1 workspace local, modelos gratuitos, logs básicos, dashboard e aprovação manual.
+- Free Early Access: 3 agentes, 10 missões por mês, Inspector completo, Replay completo durante o piloto, templates premium selecionados e badge Early Access Member, sem login e sem cartão.
 - Pro: agentes ilimitados, 500 missões por mês, Replay completo, Inspector avançado, exportação PDF/Markdown, Marketplace premium, templates premium e benchmark multi-modelo.
 - Business: tudo do Pro, múltiplos workspaces, membros da equipe, papéis `owner/admin/operator/viewer`, auditoria por membro, integrações de equipe, limites de custo, política de aprovação, retenção de auditoria e canal de incidentes.
 - Enterprise: tudo do Business, SSO/SCIM em piloto, domínio permitido, logs avançados, BYOK, região de dados, API keys, exportação de auditoria e suporte prioritário sob contrato.

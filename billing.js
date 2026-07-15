@@ -25,6 +25,30 @@ const BILLING_PLANS = {
       canUsePremiumTemplates: false,
     },
   },
+  early_access: {
+    id: "early_access",
+    name: "Free Early Access",
+    price: "R$ 0",
+    cadence: "piloto",
+    description: "Acesso imediato ao piloto, sem conta, sem cartão e sem aprovação.",
+    agentLimit: 3,
+    missionLimit: 10,
+    workspaceLimit: 1,
+    billingStatus: "pilot",
+    features: ["Sem login", "Sem cartão", "3 agentes", "10 missões/mês", "Inspector completo", "Replay completo", "Templates premium selecionados", "Early Access Member"],
+    permissions: {
+      canExportPDF: false,
+      canExportMarkdown: false,
+      canUseAdvancedInspector: true,
+      canUseReplay: true,
+      canUseMarketplace: true,
+      canUseTeamWorkspaces: false,
+      canUseBusinessGovernance: false,
+      canUseEnterpriseControls: false,
+      canUseBenchmark: false,
+      canUsePremiumTemplates: true,
+    },
+  },
   pro: {
     id: "pro",
     name: "Pro",
@@ -120,6 +144,11 @@ function normalizeBillingState(value = {}) {
     stripeCustomerId: value.stripeCustomerId || "",
     stripeSubscriptionId: value.stripeSubscriptionId || "",
     stripeSessionId: value.stripeSessionId || "",
+    earlyAccessApplicationId: "",
+    earlyAccessInviteCode: "",
+    earlyAccessEmail: "",
+    anonymousUserId: value.anonymousUserId || "",
+    earlyAccessStartedAt: value.earlyAccessStartedAt || "",
     lastCheckoutAt: value.lastCheckoutAt || "",
     ...plan.permissions,
   };
@@ -207,6 +236,21 @@ function simulateCheckout(planId) {
   });
 }
 
+function activateEarlyAccess({ anonymousUserId } = {}) {
+  return saveBillingState({
+    ...getBillingState(),
+    currentPlan: "early_access",
+    provider: "early-access-local",
+    billingStatus: "pilot",
+    stripeCustomerId: "",
+    stripeSubscriptionId: "",
+    stripeSessionId: "",
+    anonymousUserId: anonymousUserId || getBillingState().anonymousUserId || "",
+    earlyAccessStartedAt: new Date().toISOString(),
+    lastCheckoutAt: new Date().toISOString(),
+  });
+}
+
 function activateStripeSubscription({ planId, customerId, subscriptionId, sessionId } = {}) {
   const currentPlan = BILLING_PLANS[planId] ? planId : "pro";
   return saveBillingState({
@@ -237,5 +281,6 @@ window.Billing = {
   incrementMissionUsage,
   missionUsageSummary,
   simulateCheckout,
+  activateEarlyAccess,
   activateStripeSubscription,
 };

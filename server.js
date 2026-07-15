@@ -3,12 +3,14 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const { randomUUID } = require("crypto");
 const Stripe = require("stripe");
 const { createEnterpriseStore } = require("./enterprise-store");
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const enterpriseStore = createEnterpriseStore();
+const funnelEvents = [];
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
@@ -82,49 +84,85 @@ app.get("/api/health", (_req, res) => {
       sso: "pilot",
       scim: "pilot",
     },
+    early_access: {
+      mode: "open",
+      signup: "anonymous-local",
+      approval_required: false,
+    },
+    funnel: summarizeFunnelEvents(),
+  });
+});
+
+app.post("/api/early-access/start", (req, res) => {
+  const anonymousUserId = String(req.body?.anonymousUserId || "").trim();
+  const id = anonymousUserId || `anon_${randomUUID()}`;
+  recordFunnelEvent({
+    event: "start_free_clicked",
+    anonymousUserId: id,
+    plan: "early_access",
+    metadata: { source: req.body?.source || "api" },
+  });
+  res.json({
+    ok: true,
+    plan: "early_access",
+    anonymousUserId: id,
+    startedAt: new Date().toISOString(),
+    message: "Free Early Access ativado sem conta, cartão ou aprovação.",
+  });
+});
+
+app.post("/api/funnel/events", (req, res) => {
+  recordFunnelEvent(req.body || {});
+  res.json({ ok: true });
+});
+
+app.get("/api/funnel/summary", (_req, res) => {
+  res.json({
+    ok: true,
+    summary: summarizeFunnelEvents(),
   });
 });
 
 app.get("/api/enterprise/context", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.getContext(req));
+  sendStoreResult(res, enterpriseStore.getContext(req));
 });
 
 app.post("/api/enterprise/members", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.inviteMember(req, req.body));
+  sendStoreResult(res, enterpriseStore.inviteMember(req, req.body));
 });
 
 app.patch("/api/enterprise/members/:memberId", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.updateMember(req, req.params.memberId, req.body));
+  sendStoreResult(res, enterpriseStore.updateMember(req, req.params.memberId, req.body));
 });
 
 app.delete("/api/enterprise/members/:memberId", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.removeMember(req, req.params.memberId));
+  sendStoreResult(res, enterpriseStore.removeMember(req, req.params.memberId));
 });
 
 app.post("/api/enterprise/policies", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.updatePolicies(req, req.body));
+  sendStoreResult(res, enterpriseStore.updatePolicies(req, req.body));
 });
 
 app.post("/api/enterprise/approvals", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.requestApproval(req, req.body));
+  sendStoreResult(res, enterpriseStore.requestApproval(req, req.body));
 });
 
 app.post("/api/enterprise/approvals/:approvalId/decision", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.decideApproval(req, req.params.approvalId, req.body));
+  sendStoreResult(res, enterpriseStore.decideApproval(req, req.params.approvalId, req.body));
 });
 
 app.post("/api/enterprise/api-keys", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.createApiKey(req, req.body));
+  sendStoreResult(res, enterpriseStore.createApiKey(req, req.body));
 });
 
 app.delete("/api/enterprise/api-keys/:keyId", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.revokeApiKey(req, req.params.keyId));
+  sendStoreResult(res, enterpriseStore.revokeApiKey(req, req.params.keyId));
 });
 
 app.get("/api/enterprise/usage.csv", (req, res) => {
   const result = enterpriseStore.exportUsageCsv(req);
   if (!result.ok) {
-    return sendEnterpriseResult(res, result);
+    return sendStoreResult(res, result);
   }
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", 'attachment; filename="lukintosh-enterprise-usage.csv"');
@@ -132,7 +170,7 @@ app.get("/api/enterprise/usage.csv", (req, res) => {
 });
 
 app.post("/api/enterprise/sales-leads", (req, res) => {
-  sendEnterpriseResult(res, enterpriseStore.createSalesLead(req, req.body));
+  sendStoreResult(res, enterpriseStore.createSalesLead(req, req.body));
 });
 
 app.post("/api/billing/checkout", async (req, res) => {
@@ -391,6 +429,10 @@ app.post("/api/agent-run", async (req, res) => {
   });
 });
 
+app.get(["/early-access", "/pricing"], (_req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
 const server = app.listen(PORT, () => {
   console.log(`Lukintosh Mission Control rodando em http://localhost:${PORT}`);
   console.log(`Modelo OpenRouter padrão: ${DEFAULT_MODEL}`);
@@ -576,17 +618,44 @@ function resolveRequestOrigin(req, explicitOrigin) {
   return `${protocol}://${host}`;
 }
 
-function sendEnterpriseResult(res, result) {
+function sendStoreResult(res, result) {
   if (!result.ok) {
     return res.status(result.status || 400).json({
       ok: false,
-      error: result.error || "Operação Enterprise falhou.",
+      error: result.error || "Operação falhou.",
     });
   }
   return res.json({
     ok: true,
     ...(result.data || {}),
   });
+}
+
+function recordFunnelEvent(raw = {}) {
+  const eventName = String(raw.event || "").trim();
+  if (!eventName) return;
+  funnelEvents.push({
+    id: String(raw.id || randomUUID()),
+    event: eventName,
+    anonymousUserId: String(raw.anonymousUserId || "").slice(0, 120),
+    plan: String(raw.plan || "unknown").slice(0, 40),
+    metadata: raw.metadata && typeof raw.metadata === "object" ? raw.metadata : {},
+    createdAt: raw.createdAt || new Date().toISOString(),
+  });
+  if (funnelEvents.length > 2000) funnelEvents.splice(0, funnelEvents.length - 2000);
+}
+
+function summarizeFunnelEvents() {
+  const count = (eventName) => funnelEvents.filter((event) => event.event === eventName).length;
+  return {
+    visitors: count("early_access_page_view"),
+    freeUsers: count("start_free_clicked"),
+    firstMissionCompleted: count("first_mission_completed"),
+    checkoutStarted: count("checkout_started"),
+    checkoutCompleted: count("checkout_completed"),
+    freeToPro: funnelEvents.filter((event) => event.event === "checkout_completed" && event.metadata?.plan === "pro").length,
+    business: funnelEvents.filter((event) => event.event === "checkout_completed" && event.metadata?.plan === "business").length,
+  };
 }
 
 function safeOrigin(value) {

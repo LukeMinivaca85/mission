@@ -8,6 +8,7 @@ const STRIPE_PRICE_ENV = {
 
 export const BILLING_PLAN_NAMES = {
   free: "Free",
+  early_access: "Free Early Access",
   pro: "Pro",
   business: "Business",
   enterprise: "Enterprise",

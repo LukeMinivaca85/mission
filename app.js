@@ -2,6 +2,10 @@ const STORAGE_KEY = "lukintoshMissionControlState";
 const API_BASE_URL = "https://mission-qnfa.onrender.com";
 const DAY_913_STORAGE_KEY = "lukintoshDay913Feedback";
 const FOUNDER_MODE_KEY = "lukintoshFounderMode";
+const ANONYMOUS_USER_KEY = "lukintoshAnonymousUserId";
+const EARLY_ACCESS_PROFILE_KEY = "lukintoshEarlyAccessProfile";
+const FUNNEL_EVENTS_KEY = "lukintoshMissionFunnelEvents";
+const FUNNEL_ONCE_KEY = "lukintoshMissionFunnelOnce";
 const RISKY_ACTIONS = new Set(["enviar_email", "excluir_arquivo", "gastar_dinheiro"]);
 const SENSITIVE_ACTIONS = new Set([
   "enviar_email",
@@ -512,6 +516,7 @@ let replaySpeed = 850;
 let replayPaused = false;
 let memorySearch = "";
 let enterpriseContext = null;
+let funnelSummary = null;
 
 const elements = {
   metricGrid: document.querySelector("#metric-grid"),
@@ -539,6 +544,9 @@ const elements = {
   connectorGrid: document.querySelector("#connector-grid"),
   day913Checklist: document.querySelector("#day-913-checklist"),
   day913FeedbackForm: document.querySelector("#day-913-feedback-form"),
+  earlyAccessPlanLabel: document.querySelector("#early-access-plan-label"),
+  earlyAccessPlanDetail: document.querySelector("#early-access-plan-detail"),
+  earlyAccessAnalytics: document.querySelector("#early-access-analytics"),
   upgradeDialog: document.querySelector("#upgrade-dialog"),
   upgradeContent: document.querySelector("#upgrade-content"),
   checkoutDialog: document.querySelector("#checkout-dialog"),
@@ -581,6 +589,20 @@ document.querySelector("#seed-demo-button").addEventListener("click", restoreDem
 document.querySelector("#day-913-demo-button")?.addEventListener("click", prepareDay913Demo);
 document.querySelector("#day-913-copy-button")?.addEventListener("click", copyDay913Invite);
 document.querySelector("#day-913-feedback-form")?.addEventListener("submit", handleDay913Feedback);
+document.querySelector("#early-access-start-button")?.addEventListener("click", () => activateFreeEarlyAccess("landing_cta"));
+document.querySelector("#early-access-run-first-button")?.addEventListener("click", () => activateFreeEarlyAccess("first_mission_cta"));
+document.querySelector("#early-access-pro-button")?.addEventListener("click", () => openCheckout("pro"));
+document.querySelector("#early-access-business-button")?.addEventListener("click", () => openCheckout("business"));
+document.querySelector("#early-access-action-button")?.addEventListener("click", () => {
+  activateFreeEarlyAccess("see_mission_in_action");
+});
+document.querySelector("#early-access-feedback-button")?.addEventListener("click", () => {
+  switchView("dashboard");
+  const feedback = document.querySelector("#day-913-feedback-form");
+  feedback?.scrollIntoView({ behavior: "smooth", block: "center" });
+  feedback?.querySelector("textarea")?.focus({ preventScroll: true });
+  showToast("Conte o que ficou claro ou confuso. Isso vira melhoria do Mission.");
+});
 document.querySelector("#export-logs-button").addEventListener("click", exportLogs);
 document.querySelector("#close-investigation-button").addEventListener("click", () => elements.investigationDialog.close());
 document.querySelector("[data-close-upgrade]")?.addEventListener("click", () => elements.upgradeDialog.close());
@@ -602,10 +624,14 @@ document.querySelectorAll("#log-filter-agent, #log-filter-task, #log-filter-tool
 
 handleCheckoutReturn();
 render();
+if (window.location.pathname === "/early-access") {
+  switchView("early-access");
+}
 loadOpenRouterModels();
 loadConnectors();
 loadEnterpriseContext();
 loadSystemStatus();
+loadFunnelSummary();
 
 function loadState() {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -805,6 +831,7 @@ function handleAgentSubmit(event) {
 
   state.agents.push(agent);
   logAction(agent.id, null, "criar_agente", "completed", `Agente ${agent.name} criado.`);
+  trackFunnelOnce("first_agent_created", { agentRole: agent.role });
   saveState();
   form.reset();
   render();
@@ -869,6 +896,7 @@ async function handleTaskSubmit(event) {
   Billing.incrementMissionUsage();
   agent.status = "running";
   logAction(agent.id, task.id, "criar_missao", "running", `Missão "${task.title}" enviada para IA real.`);
+  trackFunnelOnce("first_mission_started", { plan: Billing.getCurrentPlan().id });
   saveState();
   render();
 
@@ -974,6 +1002,7 @@ function applyAiPlan(task, agent, aiPlan) {
   agent.status = "completed";
   evolveTrust(agent, task, "completed");
   logAction(agent.id, task.id, "plano_ia", "completed", result.summary);
+  trackFunnelOnce("first_mission_completed", { plan: Billing.getCurrentPlan().id });
 }
 
 function decideApproval(taskId, stepId, approved) {
@@ -1005,6 +1034,7 @@ function decideApproval(taskId, stepId, approved) {
       evolveTrust(agent, task, "approved");
     }
     logAction(task.agentId, task.id, step.action, "approved", `Usuário aprovou ${step.action}. Nenhuma ação real foi executada.`);
+    trackFunnelOnce("first_mission_completed", { plan: Billing.getCurrentPlan().id, approval: "approved" });
     saveState();
     render();
     showToast("Plano aprovado e registrado.");
@@ -1043,6 +1073,7 @@ function render() {
   renderTeams();
   renderGovernance();
   renderEnterpriseRuntime();
+  renderEarlyAccess();
   renderBillingPanel();
   renderSettingsBilling();
   renderTemplates();
@@ -1868,6 +1899,7 @@ function openAgentInspector(agentId) {
   expandedInspectorEvents = new Set();
   replayCursor = -1;
   stopReplay();
+  trackFunnelEvent("inspector_opened", { agentId });
   switchView("inspector");
   elements.viewTitle.textContent = "Agent Inspector";
   renderInspector();
@@ -2248,6 +2280,7 @@ function replayAgent(agentId, startAt = 0) {
   replayPaused = false;
   replayCursor = Math.min(events.length - 1, Math.max(0, startAt));
   expandedInspectorEvents = new Set([replayCursor]);
+  trackFunnelEvent("replay_opened", { source: "inspector", agentId });
   renderInspector();
   replayTimer = window.setInterval(() => {
     if (replayPaused) return;
@@ -2786,6 +2819,7 @@ function replayMission(taskId) {
   }
   const task = getTask(taskId);
   if (!task?.agentId) return;
+  trackFunnelEvent("replay_opened", { source: "mission", taskId });
   openAgentInspector(task.agentId);
   replayAgent(task.agentId);
 }
@@ -3045,11 +3079,14 @@ function renderBillingPanel() {
   const missionLimit = formatLimit(summary.missionLimit);
   const agentLimit = formatLimit(summary.agentLimit);
   const isBusinessOrAbove = ["business", "enterprise"].includes(plan.id);
-  const planDescription = isBusinessOrAbove
-    ? "Governança, auditoria e colaboração para equipes."
-    : "Atualize para Business para colaboração, auditoria por membro e políticas de equipe.";
+  const planDescription =
+    plan.id === "early_access"
+      ? "Early Access gratuito, sem login, sem cartão e sem cobrança automática."
+      : isBusinessOrAbove
+        ? "Governança, auditoria e colaboração para equipes."
+        : "Atualize para Business para colaboração, auditoria por membro e políticas de equipe.";
   elements.billingPanel.innerHTML = `
-    <div class="billing-summary plan-${escapeHtml(plan.id)} ${isBusinessOrAbove ? "business-highlight" : ""}">
+    <div class="billing-summary plan-${escapeHtml(plan.id)} ${isBusinessOrAbove || plan.id === "early_access" ? "business-highlight" : ""}">
       <div>
         <p class="section-label">Plano atual</p>
         <h3>${escapeHtml(plan.name)}</h3>
@@ -3124,7 +3161,7 @@ function renderPricing() {
           </div>
           <ul>${plan.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>
           <button class="${plan.id === current.id ? "ghost-button" : "primary-button"}" data-checkout-plan="${plan.id}" type="button">
-            ${plan.id === current.id ? "Plano ativo" : plan.id === "free" ? "Começar" : plan.id === "enterprise" ? "Fale conosco" : `Assinar ${plan.name}`}
+            ${plan.id === current.id ? "Plano ativo" : plan.id === "free" ? "Começar" : plan.id === "early_access" ? "Start Free" : plan.id === "enterprise" ? "Fale conosco" : plan.id === "pro" ? "Get Pro" : "Get Business"}
           </button>
         </article>
       `
@@ -3141,17 +3178,17 @@ function renderPlanComparison() {
   if (!elements.planComparisonTable) return;
   const plans = Object.values(Billing.PLANS);
   const rows = [
-    ["Agentes", "3", "Ilimitados", "Ilimitados", "Ilimitados"],
-    ["Missões/mês", "10", "500", "2.500", "Ilimitadas"],
-    ["Workspaces", "1", "1", "Ilimitados", "Ilimitados"],
-    ["Membros da equipe", "Não", "Não", "Sim", "Sim + SSO"],
-    ["Replay", "Não", "Sim", "Sim", "Sim"],
-    ["Inspector avançado", "Não", "Sim", "Sim", "Sim"],
-    ["Exportar PDF/Markdown", "Não", "Sim", "Sim", "Sim"],
-    ["Marketplace premium", "Não", "Sim", "Sim", "Sim"],
-    ["Benchmark multi-modelo", "Não", "Sim", "Sim", "Sim"],
-    ["Auditoria de equipe", "Logs básicos", "Local", "Por membro", "Compliance"],
-    ["Integrações", "Básicas", "Pessoais", "Equipe", "Privadas/BYOK"],
+    ["Agentes", "3", "Ilimitados", "Ilimitados", "Ilimitados", "Ilimitados"],
+    ["Missões/mês", "10", "10", "500", "2.500", "Ilimitadas"],
+    ["Workspaces", "1", "1", "1", "Ilimitados", "Ilimitados"],
+    ["Membros da equipe", "Não", "Não", "Não", "Sim", "Sim + SSO"],
+    ["Replay", "Limitado", "Completo no piloto", "Completo", "Completo", "Completo"],
+    ["Inspector avançado", "Básico", "Completo no piloto", "Sim", "Sim", "Sim"],
+    ["Exportar PDF/Markdown", "Não", "Não", "Sim", "Sim", "Sim"],
+    ["Marketplace premium", "Não", "Templates selecionados", "Sim", "Sim", "Sim"],
+    ["Benchmark multi-modelo", "Não", "Não", "Sim", "Sim", "Sim"],
+    ["Auditoria de equipe", "Logs básicos", "Logs locais", "Local", "Por membro", "Compliance"],
+    ["Integrações", "Básicas", "Marketplace gratuito", "Pessoais", "Equipe", "Privadas/BYOK"],
   ];
 
   elements.planComparisonTable.innerHTML = `
@@ -3379,6 +3416,240 @@ function teamPermissions(role) {
     viewer: ["ver dashboard", "ver logs", "ver replay"],
   };
   return map[role] || map.viewer;
+}
+
+async function activateFreeEarlyAccess(source = "manual") {
+  const anonymousUserId = getOrCreateAnonymousUserId();
+  const startedAt = new Date().toISOString();
+  const profile = {
+    anonymousUserId,
+    earlyAccessStartedAt: getEarlyAccessProfile()?.earlyAccessStartedAt || startedAt,
+    currentPlan: "early_access",
+    missionUsage: Billing.getBillingState().missionUsageThisMonth || 0,
+    agentUsage: state.agents.length,
+    onboardingCompleted: false,
+  };
+
+  saveEarlyAccessProfile(profile);
+  Billing.activateEarlyAccess({ anonymousUserId });
+  trackFunnelEvent("start_free_clicked", { source });
+
+  try {
+    await fetch("/api/early-access/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ anonymousUserId, source }),
+    });
+  } catch {
+    // Local Early Access keeps working even when analytics API is unavailable.
+  }
+
+  prepareEarlyAccessFirstMission();
+  render();
+  switchView("tasks");
+  showToast("Free Early Access ativado. Sua primeira missão está pronta para inspecionar e reproduzir.");
+}
+
+function renderEarlyAccess() {
+  const profile = getEarlyAccessProfile();
+  const plan = Billing.getCurrentPlan();
+  const isActive = plan.id === "early_access" || Boolean(profile);
+
+  if (elements.earlyAccessPlanLabel) {
+    elements.earlyAccessPlanLabel.textContent = isActive ? "Active" : "Open";
+  }
+  if (elements.earlyAccessPlanDetail) {
+    elements.earlyAccessPlanDetail.textContent = isActive
+      ? "Early Access Member ativo neste navegador. Sem login, sem cartão e sem cobrança automática."
+      : "Free Early Access can be activated instantly in this browser.";
+  }
+
+  if (elements.earlyAccessAnalytics) {
+    const summary = funnelSummary || summarizeLocalFunnelEvents();
+    elements.earlyAccessAnalytics.innerHTML = `
+      <div class="early-access-plan-grid">
+        ${funnelMetric("Visitors", summary.visitors)}
+        ${funnelMetric("Free users", summary.freeUsers)}
+        ${funnelMetric("First mission", summary.firstMissionCompleted)}
+        ${funnelMetric("Checkouts", summary.checkoutStarted)}
+        ${funnelMetric("Paid", summary.checkoutCompleted)}
+        ${funnelMetric("Free → Pro", summary.freeToPro)}
+        ${funnelMetric("Business", summary.business)}
+      </div>
+      <p class="checkout-note">Métricas locais e agregadas, sem armazenar dados desnecessários.</p>
+    `;
+  }
+}
+
+function prepareEarlyAccessFirstMission() {
+  let agent = state.agents.find((item) => item.name === "Mission Starter");
+  if (!agent) {
+    agent = {
+      id: crypto.randomUUID(),
+      name: "Mission Starter",
+      role: "Onboarding agent",
+      description: "Ajuda novos usuários a entender Mission, Inspector e Replay rapidamente.",
+      objective: "Levar o usuário ao primeiro resultado em menos de dois minutos.",
+      model: "openrouter/free",
+      tools: ["pesquisar_web", "gerar_relatorio"],
+      memory: createAgentMemory({ role: "Onboarding agent" }),
+      dna: { precision: 88, creativity: 72, speed: 92, autonomy: 68, reliability: 90, cost: 98 },
+      trustScore: 92,
+      confidence: 89,
+      createdAt: Date.now(),
+      status: "completed",
+    };
+    state.agents.unshift(agent);
+    logAction(agent.id, null, "criar_agente", "completed", "Mission Starter criado para onboarding Early Access.");
+    trackFunnelOnce("first_agent_created", { source: "early_access" });
+  }
+
+  const existing = state.tasks.find((task) => task.title === "First Mission: Understand Mission Control");
+  if (existing) {
+    selectedInspectorAgentId = agent.id;
+    return;
+  }
+
+  const task = {
+    id: crypto.randomUUID(),
+    agentId: agent.id,
+    title: "First Mission: Understand Mission Control",
+    objective: "Show how Mission runs agents, records decisions, exposes Inspector and replays execution.",
+    priority: "high",
+    progress: 100,
+    status: "completed",
+    cost: 0,
+    riskLevel: "low",
+    requiredApproval: false,
+    summary: "Mission executed a guided onboarding run with full observability, human-control checkpoints and replayable events.",
+    modelUsed: agent.model,
+    latencyMs: 420,
+    tokenUsage: { prompt_tokens: 320, completion_tokens: 420, total_tokens: 740 },
+    observability: {
+      prompt: [{ role: "system", content: "Guide a new Mission user safely." }],
+      response: "Generated onboarding mission, Inspector context and Replay timeline.",
+      tools: agent.tools,
+      input: "Start Early Access",
+      output: "First mission completed with audit trail.",
+    },
+    expected: createSimulationForecast({ title: "First Mission: Understand Mission Control", riskLevel: "low", agentTools: agent.tools }),
+    communications: createMissionConversation({ title: "First Mission: Understand Mission Control" }),
+    benchmark: createBenchmark({ modelUsed: agent.model, latencyMs: 420, riskLevel: "low" }),
+    timeMachine: [],
+    createdAt: Date.now(),
+    startedAt: Date.now() - 9000,
+    completedAt: Date.now(),
+    suggestedActions: ["abrir_inspector", "reproduzir_execucao", "testar_template"],
+  };
+  task.steps = [
+    makeStep("received_mission", "completed", "Received Early Access onboarding mission."),
+    makeStep("planned_execution", "completed", "Planned a safe first run with no external actions."),
+    makeStep("inspected_context", "completed", "Prepared Inspector data for prompt, tools, memory and model."),
+    makeStep("generated_result", "completed", "Produced an executive summary and checklist."),
+    makeStep("prepared_replay", "completed", "Saved timeline events so the execution can be replayed."),
+  ];
+  task.result = createMissionResult(task, {
+    summary: task.summary,
+    risk_level: "low",
+    required_approval: false,
+    suggested_actions: task.suggestedActions,
+    steps: task.steps.map((step) => step.message),
+  });
+  task.timeMachine = createTimeMachine(task);
+  state.tasks.unshift(task);
+  rememberAgentLearning(agent, task, { risk_level: "low", summary: task.summary });
+  logAction(agent.id, task.id, "early_access_first_mission", "completed", "Primeira missão Early Access concluída com Inspector e Replay.");
+  trackFunnelOnce("first_mission_started", { source: "early_access" });
+  trackFunnelOnce("first_mission_completed", { source: "early_access" });
+  selectedInspectorAgentId = agent.id;
+  saveState();
+}
+
+function getOrCreateAnonymousUserId() {
+  const current = localStorage.getItem(ANONYMOUS_USER_KEY);
+  if (current) return current;
+  const next = `anon_${crypto.randomUUID()}`;
+  localStorage.setItem(ANONYMOUS_USER_KEY, next);
+  return next;
+}
+
+function getEarlyAccessProfile() {
+  try {
+    return JSON.parse(localStorage.getItem(EARLY_ACCESS_PROFILE_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveEarlyAccessProfile(profile) {
+  localStorage.setItem(EARLY_ACCESS_PROFILE_KEY, JSON.stringify(profile));
+}
+
+async function loadFunnelSummary() {
+  try {
+    const response = await fetch("/api/funnel/summary");
+    const payload = await response.json();
+    if (response.ok && payload.ok) {
+      funnelSummary = payload.summary;
+      renderEarlyAccess();
+    }
+  } catch {
+    funnelSummary = summarizeLocalFunnelEvents();
+  }
+}
+
+function trackFunnelOnce(eventName, metadata = {}) {
+  const seen = JSON.parse(localStorage.getItem(FUNNEL_ONCE_KEY) || "{}");
+  if (seen[eventName]) return;
+  seen[eventName] = new Date().toISOString();
+  localStorage.setItem(FUNNEL_ONCE_KEY, JSON.stringify(seen));
+  trackFunnelEvent(eventName, metadata);
+}
+
+function trackFunnelEvent(eventName, metadata = {}) {
+  const event = {
+    id: crypto.randomUUID(),
+    event: eventName,
+    anonymousUserId: getOrCreateAnonymousUserId(),
+    plan: Billing.getCurrentPlan().id,
+    metadata,
+    createdAt: new Date().toISOString(),
+  };
+  const events = loadLocalFunnelEvents();
+  events.push(event);
+  localStorage.setItem(FUNNEL_EVENTS_KEY, JSON.stringify(events.slice(-500)));
+
+  fetch("/api/funnel/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(event),
+  }).catch(() => {});
+}
+
+function loadLocalFunnelEvents() {
+  try {
+    return JSON.parse(localStorage.getItem(FUNNEL_EVENTS_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function summarizeLocalFunnelEvents() {
+  const events = loadLocalFunnelEvents();
+  const count = (name) => events.filter((event) => event.event === name).length;
+  return {
+    visitors: count("early_access_page_view"),
+    freeUsers: count("start_free_clicked"),
+    firstMissionCompleted: count("first_mission_completed"),
+    checkoutStarted: count("checkout_started"),
+    checkoutCompleted: count("checkout_completed"),
+    freeToPro: events.filter((event) => event.event === "checkout_completed" && event.metadata?.plan === "pro").length,
+    business: events.filter((event) => event.event === "checkout_completed" && event.metadata?.plan === "business").length,
+  };
+}
+
+function funnelMetric(label, value) {
+  return `<div><span>${escapeHtml(label)}</span><strong>${Number(value || 0).toLocaleString("pt-BR")}</strong></div>`;
 }
 
 async function loadEnterpriseContext() {
@@ -3696,6 +3967,7 @@ function exportGovernanceAudit() {
 }
 
 function showUpgradeModal(feature = "premium") {
+  trackFunnelEvent("upgrade_modal_opened", { feature });
   const featureLabels = {
     agentLimit: "limite de agentes do plano Free",
     missionLimit: "limite mensal de missões",
@@ -3735,6 +4007,9 @@ function showUpgradeModal(feature = "premium") {
 
 async function openCheckout(planId) {
   const plan = Billing.PLANS[planId] || Billing.PLANS.pro;
+  if (["pro", "business"].includes(plan.id)) {
+    trackFunnelEvent("checkout_started", { plan: plan.id });
+  }
   if (plan.id === Billing.getCurrentPlan().id) {
     showToast("Este plano já está ativo.");
     return;
@@ -3744,6 +4019,11 @@ async function openCheckout(planId) {
     Billing.setPlan("free");
     render();
     showToast("Plano Free ativado.");
+    return;
+  }
+
+  if (plan.id === "early_access") {
+    activateFreeEarlyAccess("pricing_card");
     return;
   }
 
@@ -3890,6 +4170,7 @@ async function handleCheckoutReturn() {
       subscriptionId: payload.subscription,
       sessionId,
     });
+    trackFunnelEvent("checkout_completed", { plan: payload.plan || plan || "pro", provider: "stripe" });
     render();
     showPlanUnlockedModal(Billing.getCurrentPlan());
     showToast(`Plano ${Billing.getCurrentPlan().name} ativado. Novidades desbloqueadas.`);
@@ -3909,14 +4190,15 @@ function showPlanUnlockedModal(plan) {
   elements.checkoutContent.innerHTML = `
     <div class="checkout-plan">
       <span class="plan-badge ${plan.id}">${escapeHtml(plan.name)}</span>
-      <h4>Novidades desbloqueadas</h4>
-      <p>Pagamento confirmado pelo Stripe. Seu Mission Control já está operando no plano ${escapeHtml(plan.name)}.</p>
+      <h4>Welcome to Mission ${escapeHtml(plan.name)}</h4>
+      <p>Pagamento confirmado pelo Stripe. Seu Mission Control já está operando no plano ${escapeHtml(plan.name)}. Um link de acesso por e-mail pode ser enviado pelo fluxo de magic link quando habilitado no servidor.</p>
     </div>
     <ul class="checkout-unlocked-list">
       ${features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}
     </ul>
     <div class="paywall-actions">
-      <button class="primary-button" data-unlocked-start type="button">Usar agora</button>
+      <button class="primary-button" data-unlocked-start type="button">Open Mission Control</button>
+      <button class="ghost-button" data-unlocked-first type="button">Run your first mission</button>
       <button class="ghost-button" data-unlocked-plans type="button">Ver plano ativo</button>
     </div>
   `;
@@ -3924,6 +4206,12 @@ function showPlanUnlockedModal(plan) {
   elements.checkoutContent.querySelector("[data-unlocked-start]")?.addEventListener("click", () => {
     elements.checkoutDialog.close();
     switchView("dashboard");
+  });
+  elements.checkoutContent.querySelector("[data-unlocked-first]")?.addEventListener("click", () => {
+    elements.checkoutDialog.close();
+    prepareEarlyAccessFirstMission();
+    render();
+    switchView("tasks");
   });
   elements.checkoutContent.querySelector("[data-unlocked-plans]")?.addEventListener("click", () => {
     elements.checkoutDialog.close();
@@ -4464,6 +4752,7 @@ function switchView(viewId) {
   const label = document.querySelector(`.nav-item[data-view="${viewId}"]`)?.dataset.label || "Dashboard";
   const subtitles = {
     dashboard: "Execute, acompanhe e governe agentes de IA em um único centro de comando.",
+    "early-access": "Comece sem login, rode a primeira missão e faça upgrade quando fizer sentido.",
     agents: "Configure agentes com modelos, ferramentas e permissões claras.",
     tasks: "Planeje, execute e audite missões com aprovação humana.",
     logs: "Investigue ações, custos, latência e decisões em uma trilha única.",
@@ -4478,6 +4767,8 @@ function switchView(viewId) {
   if (elements.viewSubtitle) {
     elements.viewSubtitle.textContent = subtitles[viewId] || "";
   }
+  if (viewId === "early-access") trackFunnelEvent("early_access_page_view");
+  if (viewId === "pricing") trackFunnelEvent("pricing_viewed");
 }
 
 function pendingSteps() {

@@ -24,6 +24,10 @@
             <span class="nav-icon">◆</span>
             Dashboard
           </button>
+          <button class="nav-item" data-view="early-access" data-label="Early Access">
+            <span class="nav-icon">◉</span>
+            Early Access
+          </button>
           <button class="nav-item" data-view="agents" data-label="Agentes">
             <span class="nav-icon">◇</span>
             Agentes
@@ -196,6 +200,108 @@
                 </div>
               </div>
               <div id="heatmap-board" class="heatmap-board"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="early-access" class="view" aria-labelledby="early-access-title">
+          <section class="panel early-access-hero">
+            <div class="early-access-copy">
+              <p class="section-label">Early Access</p>
+              <h3 id="early-access-title">Run AI agents. See what they’re doing. Stay in control.</h3>
+              <p>
+                Mission is a command center for running, monitoring and controlling AI agents — with missions, approvals, logs, Inspector, Replay and complete visibility.
+              </p>
+              <p class="early-access-statement">
+                Mission Early Access is live. Start now — no account or credit card required.
+              </p>
+              <div class="early-access-actions">
+                <button class="primary-button" id="early-access-start-button" type="button">Start Free</button>
+                <button class="ghost-button" id="early-access-pro-button" type="button">Get Pro</button>
+                <button class="ghost-button" id="early-access-business-button" type="button">Get Business</button>
+                <button class="ghost-button" id="early-access-action-button" type="button">See Mission in Action</button>
+              </div>
+            </div>
+            <div class="early-access-meter" id="early-access-status-card">
+              <span>Status</span>
+              <strong id="early-access-plan-label">Open</strong>
+              <small id="early-access-plan-detail">Free Early Access can be activated instantly in this browser.</small>
+              <div class="early-access-mini-metrics">
+                <div>
+                  <span>Account</span>
+                  <strong>No login</strong>
+                </div>
+                <div>
+                  <span>Card</span>
+                  <strong>Not required</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="early-access-layout">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Value</p>
+                  <h3>Why start now</h3>
+                </div>
+              </div>
+              <div class="early-access-benefits">
+                <div><span>01</span><strong>Execute AI agents from one command center</strong></div>
+                <div><span>02</span><strong>Monitor missions in real time</strong></div>
+                <div><span>03</span><strong>Inspect decisions and tool usage</strong></div>
+                <div><span>04</span><strong>Replay complete executions</strong></div>
+                <div><span>05</span><strong>Approve sensitive actions</strong></div>
+                <div><span>06</span><strong>Track cost, latency and failures</strong></div>
+                <div><span>07</span><strong>Install specialized agents from the Marketplace</strong></div>
+              </div>
+            </section>
+
+            <section class="panel" id="early-access-onboarding-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">First run</p>
+                  <h3>Get to value in under two minutes</h3>
+                </div>
+              </div>
+              <div class="early-access-steps" id="early-access-onboarding">
+                <div class="active"><span>1</span><strong>Choose a mission type</strong><small>Research, Coding, Business, Marketing or Study.</small></div>
+                <div><span>2</span><strong>Recommended agent</strong><small>Mission prepares an agent with safe permissions.</small></div>
+                <div><span>3</span><strong>Run the first mission</strong><small>See result, Inspector and Replay without signup.</small></div>
+              </div>
+              <div class="early-access-actions">
+                <button class="primary-button" id="early-access-run-first-button" type="button">Run your first mission</button>
+                <button class="ghost-button" id="early-access-feedback-button" type="button">Send feedback</button>
+              </div>
+            </section>
+
+            <section class="panel early-access-admin-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="section-label">Plan</p>
+                  <h3>Free Early Access</h3>
+                </div>
+              </div>
+              <div class="early-access-plan-grid">
+                <div><span>Agents</span><strong>3</strong></div>
+                <div><span>Missions/month</span><strong>10</strong></div>
+                <div><span>Inspector</span><strong>Full during pilot</strong></div>
+                <div><span>Replay</span><strong>Full during pilot</strong></div>
+                <div><span>Templates</span><strong>Selected premium</strong></div>
+                <div><span>Badge</span><strong>Early Access Member</strong></div>
+              </div>
+              <p class="checkout-note">Paid plans are validated by the backend and Stripe. Early Access is local, anonymous and does not unlock sensitive Enterprise privileges.</p>
+            </section>
+
+            <section class="panel early-access-admin-panel">
+              <div class="panel-header compact-header">
+                <div>
+                  <p class="section-label">Funnel</p>
+                  <h3>Acquisition analytics</h3>
+                </div>
+              </div>
+              <div id="early-access-analytics" class="early-access-analytics"></div>
             </section>
           </div>
         </section>
@@ -851,8 +957,8 @@
     <dialog id="checkout-dialog" class="modal checkout-modal">
       <div class="modal-header">
         <div>
-          <p class="section-label">Checkout mock</p>
-          <h3>Assinatura simulada</h3>
+          <p class="section-label">Checkout</p>
+          <h3>Assinatura Mission</h3>
         </div>
         <button class="ghost-button" data-close-checkout type="button">Fechar</button>
       </div>
