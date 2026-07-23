@@ -1,14 +1,79 @@
-# Lukintosh Mission Control
+# Lukintosh Mission OS
 
-Sistema operacional para desenvolver, monitorar, entender, depurar e controlar agentes de IA com OpenRouter.
+**Mission OS is the coordination and trust layer for a world where humans, AI agents and machines work together.**
 
-Slogan: **Observe, controle e confie nos seus agentes de IA.**
+O Mission transforma objetivos persistentes em planos vivos, coordena humanos e agentes, mantém memória estruturada, bloqueia ações sensíveis e registra cada consequência no Replay. O Mission Control original continua disponível como superfície legada.
+
+Princípio: **Apps store work. Mission OS understands, performs and improves it.**
+
+## Mission OS Foundation
+
+A versão `0.4.0` introduz uma fundação local-first funcional:
+
+- **Mission Command:** cria missões persistentes com ciclo de vida, participantes, orçamento, autonomia, capacidades e próxima ação.
+- **Mission Cortex:** gera um plano determinístico, versionado e com dependências sem exigir API paga.
+- **Multiplayer local:** sincroniza estado, presença e alterações entre navegadores conectados ao mesmo servidor Express usando SSE e controle de revisão.
+- **Living Memory:** registra decisões, fatos, restrições e aprendizados com escopo, origem, confiança e pesquisa.
+- **Action Fabric:** cataloga agentes, conectores, APIs, arquivos, infraestrutura e robôs por prontidão e risco.
+- **Trust Kernel:** aplica níveis de autonomia, orçamento, risco, checkpoints humanos e desligamento da missão.
+- **Mission Replay:** mantém uma timeline append-only de estados, planos, ações, ferramentas, aprovações e memórias.
+- **Reality Mesh:** registra dispositivos, detecta capacidades reais do navegador e conecta a câmera somente após consentimento, sem enviar vídeo ao servidor.
+- **Demonstração guiada:** “Preparar e lançar uma nova versão segura do Mission”, totalmente local e sem API paga.
+
+### Estado operacional honesto
+
+| Camada | Estado nesta versão |
+| --- | --- |
+| Ciclo de vida, Cortex local, memória, Trust Kernel e Replay | Funcional no navegador |
+| Persistência | Funcional em `localStorage`, com schema versionado |
+| Multiplayer | Funcional entre sessões do servidor Express; file store + SSE |
+| OpenRouter, GitHub, Stripe e demais conectores | Piloto, conforme credenciais e endpoints já existentes |
+| Câmera e capacidades do navegador | Funcionais quando o navegador/dispositivo oferece as APIs e o usuário autoriza |
+| Sensores físicos externos | Simulados até existir um gateway ou protocolo real |
+| Robôs e controle físico | Planejados; nenhuma ação física é executada |
+| Deploy | Não realizado por esta implementação |
+
+### Arquitetura da fundação
+
+```text
+mission-os-core.mjs  domínio, transições, Cortex, memória e confiança
+mission-os-store.js  estado durável local, revisão, presença e eventos SSE
+mission-os-ui.mjs    renderização, interações e persistência local
+mission-os.css       sistema visual responsivo do Mission OS
+tests/               testes do domínio com node:test
+```
+
+O frontend original permanece em `app.js`, `index.html` e `style.css`. A nova camada foi isolada para evitar aumentar ainda mais o acoplamento de `app.js`.
+
+### Sincronização local
+
+O Express oferece:
+
+```http
+GET /api/mission-os/state
+PUT /api/mission-os/state
+POST /api/mission-os/presence
+GET /api/mission-os/events
+```
+
+Sem `MISSION_SYNC_TOKEN`, essas rotas aceitam somente conexões loopback. Isso permite testar várias abas localmente sem abrir uma API de escrita na internet. Para um ambiente remoto, configure autenticação apropriada; o token opcional é uma proteção provisória de piloto, não substitui contas, sessões e autorização por organização.
+
+### Validar
+
+```bash
+npm ci
+npm test
+npm run check
+npm start
+```
+
+Depois abra `http://localhost:3000`. O endpoint `GET /api/health` continua disponível.
 
 ## Stack
 
 - Frontend em HTML, CSS e JavaScript puro.
 - Backend em Node.js + Express.
-- Persistência local no navegador com `localStorage`.
+- Persistência local versionada no navegador com `localStorage`.
 - Chave do OpenRouter somente no servidor via `OPENROUTER_API_KEY`.
 
 ## Como configurar OpenRouter

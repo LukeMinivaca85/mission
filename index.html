@@ -3,10 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lukintosh Mission | Build, Run & Control AI Agents</title>
+    <title>Lukintosh Mission OS | Humans, Agents & Machines</title>
     <link rel="icon" type="image/png" href="assets/lukintosh-favicon.png" />
     <link rel="apple-touch-icon" href="assets/lukintosh-favicon.png" />
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="mission-os.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -14,15 +15,19 @@
         <div class="brand">
           <div class="brand-mark" aria-hidden="true">LM</div>
           <div>
-            <h1>Lukintosh Mission Control</h1>
-            <p>Observe, controle e confie nos seus agentes de IA.</p>
+            <h1>Lukintosh Mission OS</h1>
+            <p>Humans, agents and machines. One operating system.</p>
           </div>
         </div>
 
         <nav class="nav-list">
-          <button class="nav-item active" data-view="dashboard" data-label="Dashboard">
+          <button class="nav-item active" data-view="mission-os" data-label="Mission OS">
+            <span class="nav-icon">✣</span>
+            Mission OS
+          </button>
+          <button class="nav-item" data-view="dashboard" data-label="Dashboard legado">
             <span class="nav-icon">◆</span>
-            Dashboard
+            Control legado
           </button>
           <button class="nav-item" data-view="early-access" data-label="Early Access">
             <span class="nav-icon">◉</span>
@@ -78,9 +83,9 @@
       <main class="main-content">
         <header class="topbar">
           <div>
-            <p class="section-label">Sistema operacional</p>
-            <h2 id="view-title">Dashboard</h2>
-            <p class="view-subtitle" id="view-subtitle">Execute, acompanhe e governe agentes de IA em um único centro de comando.</p>
+            <p class="section-label">Coordination and trust layer</p>
+            <h2 id="view-title">Mission OS</h2>
+            <p class="view-subtitle" id="view-subtitle">Coordene objetivos persistentes entre humanos, agentes, software e máquinas.</p>
           </div>
           <div class="topbar-actions">
             <button class="ghost-button" id="seed-demo-button" type="button">Preparar experiência guiada</button>
@@ -88,7 +93,11 @@
           </div>
         </header>
 
-        <section id="dashboard" class="view active-view" aria-labelledby="dashboard-title">
+        <section id="mission-os" class="view active-view mission-os-view" aria-label="Mission OS">
+          <div id="mission-os-root"></div>
+        </section>
+
+        <section id="dashboard" class="view" aria-labelledby="dashboard-title">
           <section class="panel onboarding-panel" id="mission-primer">
             <div class="onboarding-copy">
               <p class="section-label">Comece aqui</p>
@@ -977,5 +986,6 @@
     </dialog>
     <script src="billing.js"></script>
     <script src="app.js"></script>
+    <script type="module" src="mission-os-ui.mjs"></script>
   </body>
 </html>

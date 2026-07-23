@@ -6,10 +6,12 @@ const path = require("path");
 const { randomUUID } = require("crypto");
 const Stripe = require("stripe");
 const { createEnterpriseStore } = require("./enterprise-store");
+const { createMissionOsStore } = require("./mission-os-store");
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const enterpriseStore = createEnterpriseStore();
+const missionOsStore = createMissionOsStore();
 const funnelEvents = [];
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
@@ -90,6 +92,49 @@ app.get("/api/health", (_req, res) => {
       approval_required: false,
     },
     funnel: summarizeFunnelEvents(),
+    mission_os: {
+      local_sync: true,
+      durable_store: "file-backed-json",
+      realtime: "server-sent-events",
+      remote_access: Boolean(process.env.MISSION_SYNC_TOKEN),
+    },
+  });
+});
+
+app.get("/api/mission-os/state", requireMissionSyncAccess, (_req, res) => {
+  res.json({ ok: true, ...missionOsStore.getState(), presence: missionOsStore.getPresence() });
+});
+
+app.put("/api/mission-os/state", requireMissionSyncAccess, (req, res) => {
+  try {
+    const result = missionOsStore.putState(
+      req.body?.state,
+      req.body?.revision,
+      req.get("x-mission-client") || "browser"
+    );
+    if (!result.ok) return res.status(result.status).json(result);
+    return res.json({ ok: true, ...result.record });
+  } catch (error) {
+    return res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
+app.post("/api/mission-os/presence", requireMissionSyncAccess, (req, res) => {
+  res.json({ ok: true, ...missionOsStore.heartbeat(req.body || {}) });
+});
+
+app.get("/api/mission-os/events", requireMissionSyncAccess, (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders?.();
+  const send = (event) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+  send({ type: "ready", record: missionOsStore.getState(), participants: missionOsStore.getPresence() });
+  const unsubscribe = missionOsStore.subscribe(send);
+  const heartbeat = setInterval(() => res.write(": heartbeat\n\n"), 20_000);
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    unsubscribe();
   });
 });
 
@@ -476,6 +521,25 @@ function securityHeaders(_req, res, next) {
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   next();
+}
+
+function requireMissionSyncAccess(req, res, next) {
+  const configuredToken = String(process.env.MISSION_SYNC_TOKEN || "");
+  if (configuredToken) {
+    const suppliedToken = String(req.get("authorization") || "").replace(/^Bearer\s+/i, "");
+    const expected = Buffer.from(configuredToken);
+    const supplied = Buffer.from(suppliedToken);
+    if (expected.length !== supplied.length || !require("crypto").timingSafeEqual(expected, supplied)) {
+      return res.status(401).json({ ok: false, error: "Token de sincronização inválido." });
+    }
+    return next();
+  }
+  const address = String(req.ip || req.socket?.remoteAddress || "");
+  if (["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(address)) return next();
+  return res.status(403).json({
+    ok: false,
+    error: "Sincronização remota desativada. Configure MISSION_SYNC_TOKEN.",
+  });
 }
 
 function apiRateLimit(req, res, next) {

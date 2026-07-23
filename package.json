@@ -1,10 +1,12 @@
 {
   "name": "lukintosh-mission-control",
-  "version": "0.2.0",
-  "description": "Sistema operacional para monitorar, controlar e governar agentes de IA via OpenRouter.",
+  "version": "0.4.0",
+  "description": "Coordination and trust layer for humans, AI agents, software and machines.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check app.js && node --check server.js && node --check mission-os-core.mjs && node --check mission-os-store.js && node --check mission-os-ui.mjs",
     "deploy": "node scripts/deploy-cloudflare.mjs",
     "cloudflare:secrets": "node scripts/sync-cloudflare-secrets.mjs"
   },
@@ -12,7 +14,10 @@
     "lukintosh",
     "agents",
     "openrouter",
-    "mission-control"
+    "mission-control",
+    "mission-os",
+    "multi-agent",
+    "human-in-the-loop"
   ],
   "author": "",
   "license": "MIT",

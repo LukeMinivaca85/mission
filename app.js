@@ -4751,6 +4751,7 @@ function switchView(viewId) {
   document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === viewId));
   const label = document.querySelector(`.nav-item[data-view="${viewId}"]`)?.dataset.label || "Dashboard";
   const subtitles = {
+    "mission-os": "Coordene objetivos persistentes entre humanos, agentes, software e máquinas.",
     dashboard: "Execute, acompanhe e governe agentes de IA em um único centro de comando.",
     "early-access": "Comece sem login, rode a primeira missão e faça upgrade quando fizer sentido.",
     agents: "Configure agentes com modelos, ferramentas e permissões claras.",
